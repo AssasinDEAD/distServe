@@ -6,13 +6,13 @@ class Person(
     val job: String
 )
 
-class Mama(
+class FRIEND1(
     val name: String,
     val dateOfBirth: String,
     val age: Int
 )
 
-class Dad(
+class FRIEND2(
     val name: String,
     val dateOfBirth: String,
     val age: Int
@@ -21,21 +21,21 @@ class Dad(
 fun main() {
 
     val person = Person(
-        name = "Serik",
+        name = "DIAS",
         dateOfBirth = "2004-02-29",
         gender = "Male",
         age = 20,
         job = "Software Engineer"
     )
 
-    val mama = Mama(
-        name = "Makhabat",
+    val mama = FRIEND1(
+        name = "JOHN",
         dateOfBirth = "1965-09-18",
         age = 59
     )
 
-    val dad = Dad(
-        name = "Ermek",
+    val dad = FRIEND2(
+        name = "ERZHAN",
         dateOfBirth = "1962-11-22",
         age = 61
     )
