@@ -3,22 +3,17 @@ import { ApolloProvider, useQuery, useMutation, gql } from '@apollo/client';
 import { taskClient, userClient } from './apolloClient';
 
 // GraphQL queries
-const GET_USERS = gql`
-  query GetUsers {
+const GET_TASKS_AND_USERS = gql`
+  query Tasks {
+    tasks {
+      description
+      user_id
+      created_at
+      id
+    }
     users {
       id
       name
-    }
-  }
-`;
-
-const GET_TASKS = gql`
-  query GetTasks {
-    tasks {
-      id
-      description
-      user_id
-      user_name
     }
   }
 `;
@@ -29,64 +24,73 @@ const ADD_TASK = gql`
       id
       description
       user_id
-      user_name
+      created_at
     }
   }
 `;
 
 function TaskManager() {
+  const { data, loading, error } = useQuery(GET_TASKS_AND_USERS, { client: taskClient });
+  const [addTask] = useMutation(ADD_TASK, {
+    refetchQueries: [GET_TASKS_AND_USERS], // Обновляем запрос после добавления задачи
+  });
   const [taskDescription, setTaskDescription] = useState('');
-  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState('');
 
-  // Fetch users and tasks
-  const { data: usersData, loading: loadingUsers } = useQuery(GET_USERS, { client: userClient });
-  const { data: tasksData, loading: loadingTasks } = useQuery(GET_TASKS, { client: taskClient });
+  // Проверяем на ошибки и загрузку
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
 
-  // Add task mutation
-  const [addTask] = useMutation(ADD_TASK, { client: taskClient });
-
-  const handleSubmit = async () => {
+  // Обработка добавления задачи
+  const handleAddTask = async (e) => {
+    e.preventDefault();
     if (taskDescription && selectedUserId) {
-      await addTask({ variables: { description: taskDescription, userId: selectedUserId } });
-      setTaskDescription(''); // Clear input after adding task
-      window.location.reload(); // Reload page after adding task
+      await addTask({ variables: { description: taskDescription, userId: parseInt(selectedUserId) } });
+      setTaskDescription('');
+      setSelectedUserId('');
     }
   };
-
-  // Check for data loading
-  if (loadingUsers || loadingTasks) return <p>Loading...</p>;
 
   return (
     <div style={{ padding: '20px' }}>
       <h1>Task Manager</h1>
 
-      {/* Input for new task */}
-      <div>
+      {/* Форма для добавления задачи */}
+      <form onSubmit={handleAddTask}>
         <input
           type="text"
-          placeholder="Task description"
+          placeholder="Task Description"
           value={taskDescription}
           onChange={(e) => setTaskDescription(e.target.value)}
+          required
         />
-        <select onChange={(e) => setSelectedUserId(parseInt(e.target.value))}>
-          <option value="">Select user</option>
-          {usersData?.users.map((user) => (
+        <select
+          value={selectedUserId}
+          onChange={(e) => setSelectedUserId(e.target.value)}
+          required
+        >
+          <option value="">Select User</option>
+          {data.users.map((user) => (
             <option key={user.id} value={user.id}>
               {user.name}
             </option>
           ))}
         </select>
-        <button onClick={handleSubmit}>Add Task</button>
-      </div>
+        <button type="submit">Add Task</button>
+      </form>
 
-      {/* List of tasks */}
+      {/* Список задач */}
       <h2>Task List</h2>
       <ul>
-        {tasksData?.tasks.map((task) => (
-          <li key={task.id}>
-            {task.description} (Assigned to User ID: {task.user_id}, Name: {task.user_name || 'Unknown User'})
-          </li>
-        ))}
+        {data.tasks.map((task) => {
+          // Находим имя пользователя по user_id
+          const user = data.users.find((user) => user.id == task.user_id);
+          return (
+            <li key={task.id}>
+              {task.description} (Assigned to User ID: {task.user_id}, Name: {user ? user.name : 'Unknown User'})
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

@@ -42,6 +42,7 @@ const typeDefs = gql`
 
     type Query {
         tasks: [Task]
+        users: [User]
     }
 `;
 
@@ -49,32 +50,50 @@ const typeDefs = gql`
 const resolvers = {
     Query: {
         tasks: async () => {
-            // Выполняем запрос к базе данных, чтобы получить задачи и имена пользователей
+            // Выполняем запрос к базе данных DistTasks для получения задач
             const taskResult = await taskPool.query(`
-                SELECT t.id, t.description, t.user_id, u.name
-                FROM tasks t
-                LEFT JOIN users u ON t.user_id = u.id
+                SELECT id, description, user_id, created_at 
+                FROM tasks
             `);
 
-            // Возвращаем задачи с user_id и именем пользователя
-            return taskResult.rows.map(task => ({
-                id: task.id,
-                description: task.description,
-                user_id: task.user_id, // Возвращаем user_id
-                created_at: task.created_at
-            }));
+            const tasks = taskResult.rows;
+
+            // Выполняем запрос к базе данных DistUsers для получения пользователей
+            const userResult = await userPool.query(`
+                SELECT id, name 
+                FROM users
+            `);
+
+            const users = userResult.rows;
+
+            // Пробегаемся по задачам и сопоставляем с пользователями
+            return tasks.map(task => {
+                const user = users.find(u => u.id === task.user_id);
+                return {
+                    id: task.id,
+                    description: task.description,
+                    user_id: task.user_id,
+                    created_at: task.created_at,
+                    user_name: user ? user.name : null, // Имя пользователя добавляется в результирующий объект, но не в базу данных
+                };
+            });
+        },
+        users: async () => {
+            // Получаем пользователей из базы данных DistUsers
+            const userResult = await userPool.query(`SELECT id, name FROM users`);
+            return userResult.rows; // Возвращаем пользователей
         },
     },
     Mutation: {
         addTask: async (_, { description, userId }) => {
-            // Добавляем новую задачу
+            // Добавляем новую задачу в DistTasks
             const result = await taskPool.query(
                 'INSERT INTO tasks (description, user_id) VALUES ($1, $2) RETURNING *',
                 [description, userId]
             );
             const task = result.rows[0];
 
-            // Возвращаем добавленную задачу с user_id
+            // Возвращаем добавленную задачу
             return {
                 id: task.id,
                 description: task.description,
