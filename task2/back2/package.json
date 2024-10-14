@@ -10,7 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "apollo-server": "^3.13.0",
     "apollo-server-express": "^3.13.0",
+    "cors": "^2.8.5",
+    "cross-fetch": "^4.0.0",
     "graphql": "^16.9.0"
   }
 }

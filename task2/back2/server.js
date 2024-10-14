@@ -1,124 +1,98 @@
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const { Pool } = require('pg');
+const fetch = require('cross-fetch'); 
 
-// Подключение к базе данных DistTasks
-const taskPool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'DistTasks',
-    password: 'Serik2004',
-    port: 5432,
+const pool = new Pool({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'DistTasks',
+  password: 'Serik2004',
+  port: 5432,
 });
 
-// Подключение к базе данных DistUsers
-const userPool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'DistUsers',
-    password: 'Serik2004',
-    port: 5432,
-});
-
-const app = express();
-
-// Определение схемы GraphQL
+// GraphQL схема
 const typeDefs = gql`
-   type User {
-        id: ID!
-        name: String!
-    }
+  type Task {
+    id: ID!
+    description: String!
+    user_id: Int!
+    userName: String
+    created_at: String
+  }
 
-   type Task {
-        id: ID!
-        description: String!
-        user_id: Int!
-        created_at: String
-    }
+  type Query {
+    tasks: [Task]
+  }
 
-    type Mutation {
-        addTask(description: String!, userId: Int!): Task
-    }
-
-    type Query {
-        tasks: [Task]
-        users: [User]
-    }
+  type Mutation {
+    addTask(description: String!, user_id: Int!): Task
+  }
 `;
 
-// Определение резолверов
-const resolvers = {
-    Query: {
-        tasks: async () => {
-            // Выполняем запрос к базе данных DistTasks для получения задач
-            const taskResult = await taskPool.query(`
-                SELECT id, description, user_id, created_at 
-                FROM tasks
-            `);
+const getUserName = async (user_id) => {
+  const response = await fetch('http://localhost:3000/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: `query User($id: ID!) { user(id: $id) { name } }`,
+      variables: { id: user_id },
+    }),
+  });
 
-            const tasks = taskResult.rows;
+  if (!response.ok) {
+    throw new Error('Ошибка при получении пользователя');
+  }
 
-            // Выполняем запрос к базе данных DistUsers для получения пользователей
-            const userResult = await userPool.query(`
-                SELECT id, name 
-                FROM users
-            `);
-
-            const users = userResult.rows;
-
-            // Пробегаемся по задачам и сопоставляем с пользователями
-            return tasks.map(task => {
-                const user = users.find(u => u.id === task.user_id);
-                return {
-                    id: task.id,
-                    description: task.description,
-                    user_id: task.user_id,
-                    created_at: task.created_at,
-                    user_name: user ? user.name : null, // Имя пользователя добавляется в результирующий объект, но не в базу данных
-                };
-            });
-        },
-        users: async () => {
-            // Получаем пользователей из базы данных DistUsers
-            const userResult = await userPool.query(`SELECT id, name FROM users`);
-            return userResult.rows; // Возвращаем пользователей
-        },
-    },
-    Mutation: {
-        addTask: async (_, { description, userId }) => {
-            // Добавляем новую задачу в DistTasks
-            const result = await taskPool.query(
-                'INSERT INTO tasks (description, user_id) VALUES ($1, $2) RETURNING *',
-                [description, userId]
-            );
-            const task = result.rows[0];
-
-            // Возвращаем добавленную задачу
-            return {
-                id: task.id,
-                description: task.description,
-                user_id: task.user_id,
-                created_at: task.created_at
-            };
-        },
-    },
+  const user = await response.json();
+  return user.data.user.name; 
 };
 
-// Создание и старт сервера Apollo
-async function startServer() {
-    const server = new ApolloServer({ typeDefs, resolvers });
-    await server.start();
+// GraphQL резолверы
+const resolvers = {
+  Query: {
+    tasks: async () => {
+      const result = await pool.query('SELECT * FROM tasks');
+      const tasks = result.rows;
 
-    // Применение middleware Express
-    server.applyMiddleware({ app });
+      // Получаем имена пользователей для каждой задачи
+      const tasksWithUserNames = await Promise.all(
+        tasks.map(async (task) => {
+          const userName = await getUserName(task.user_id);
+          return {
+            ...task,
+            userName, // Подставляем имя пользователя
+          };
+        })
+      );
+      return tasksWithUserNames;
+    },
+  },
+  Mutation: {
+    addTask: async (_, { description, user_id }) => {
+      const result = await pool.query(
+        'INSERT INTO tasks (description, user_id) VALUES ($1, $2) RETURNING *',
+        [description, user_id]
+      );
+      const newTask = result.rows[0];
 
-    // Запуск Express сервера на порту 3500
-    app.listen(3500, () => {
-        console.log(`Task service running on http://localhost:3500${server.graphqlPath}`);
-    });
-}
+      const userName = await getUserName(user_id);
 
-// Вызов функции для старта сервера
-startServer().catch((error) => {
-    console.error('Error starting server:', error);
+      return {
+        ...newTask,
+        userName,
+      };
+    },
+  },
+};
+
+const server = new ApolloServer({ typeDefs, resolvers });
+
+const app = express();
+server.start().then(() => {
+  server.applyMiddleware({ app });
+
+  app.listen({ port: 3500 }, () =>
+    console.log(`Task Service running at http://localhost:3500${server.graphqlPath}`)
+  );
 });

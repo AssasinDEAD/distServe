@@ -2,69 +2,65 @@ const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const { Pool } = require('pg');
 
-// Подключение к базе данных DistUsers
+// Настройка подключения к базе данных PostgreSQL DistUsers
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'DistUsers',
-    password: 'Serik2004',
-    port: 5432,
+  user: 'postgres',
+  host: 'localhost',
+  database: 'DistUsers',
+  password: 'Serik2004', // Замени на свой пароль
+  port: 5432,
 });
 
-const app = express();
-
-// Определение схемы GraphQL
+// GraphQL схема
 const typeDefs = gql`
-    type User {
-        id: ID!
-        name: String!
-        age: Int!
-        gender: String!
-    }
+  type User {
+    id: ID!
+    name: String!
+  }
 
-    type Mutation {
-        addUser(name: String!, age: Int!, gender: String!): User
-    }
+  type Query {
+    users: [User]
+    user(id: ID!): User
+  }
 
-    type Query {
-        users: [User]
-    }
+  type Mutation {
+    addUser(name: String!): User
+    deleteUser(id: ID!): Boolean
+  }
 `;
 
-// Определение резолверов
+// Резолверы
 const resolvers = {
-    Query: {
-        users: async () => {
-            const result = await pool.query('SELECT * FROM users');
-            return result.rows;
-        },
+  Query: {
+    users: async () => {
+      const result = await pool.query('SELECT * FROM users');
+      return result.rows;
     },
-    Mutation: {
-        addUser: async (_, { name, age, gender }) => {
-            const result = await pool.query(
-                'INSERT INTO users (name, age, gender) VALUES ($1, $2, $3) RETURNING *',
-                [name, age, gender]
-            );
-            return result.rows[0];
-        },
+    user: async (_, { id }) => {
+      const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+      return result.rows[0];
     },
+  },
+  Mutation: {
+    addUser: async (_, { name }) => {
+      const result = await pool.query('INSERT INTO users (name) VALUES ($1) RETURNING *', [name]);
+      return result.rows[0];
+    },
+    deleteUser: async (_, { id }) => {
+      await pool.query('DELETE FROM users WHERE id = $1', [id]);
+      return true;
+    },
+  },
 };
 
-// Создание и старт сервера Apollo
-async function startServer() {
-    const server = new ApolloServer({ typeDefs, resolvers });
-    await server.start(); 
+// Настройка Apollo Server
+const server = new ApolloServer({ typeDefs, resolvers });
 
-    // Применение middleware Express
-    server.applyMiddleware({ app });
+const app = express();
+server.start().then(() => {
+  server.applyMiddleware({ app });
 
-    // Запуск Express сервера на порту 3000
-    app.listen(3000, () => {
-        console.log(`User service running on http://localhost:3000${server.graphqlPath}`);
-    });
-}
-
-// Вызов функции для старта сервера
-startServer().catch((error) => {
-    console.error('Error starting server:', error);
+  app.listen({ port: 3000 }, () =>
+    console.log(`User Service running at http://localhost:3000${server.graphqlPath}`)
+  );
 });
