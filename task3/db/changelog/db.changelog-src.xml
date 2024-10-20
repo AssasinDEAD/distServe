@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro
+        http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+
+    <!-- Проверка: если таблицы users не существует, то она будет создана -->
+
+    <!-- Создание новой таблицы users2 в базе данных DistUsers2 -->
+    <changeSet id="1" author="postgres">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="users2"/>
+            </not>
+        </preConditions>
+        <createTable tableName="users2">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="age" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gender" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Вставка данных из таблицы users в DistUsers в новую таблицу users2 -->
+<changeSet id="2" author="postgres" runAlways="true">
+    <sql>
+        COPY users2 (id, name, age, gender)
+        FROM 'C:/Users/ARMAGEDDON/Documents/LastCourse/distServ/task3/data/users.csv'
+        DELIMITER ','
+        CSV HEADER;
+    </sql>
+</changeSet>
+
+
+</databaseChangeLog>
