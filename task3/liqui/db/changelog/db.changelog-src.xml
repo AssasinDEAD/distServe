@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro
+        http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+
+    <!-- Проверка: если таблицы users2 не существует, то она будет создана -->
+    <changeSet id="1" author="postgres">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="users2"/>
+            </not>
+        </preConditions>
+        <createTable tableName="users2">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="age" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gender" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Вставка данных напрямую в таблицу users2 -->
+    <changeSet id="2" author="postgres" runAlways="true">
+        <insert tableName="users2">
+            <column name="id" value="1"/>
+            <column name="name" value="John Doe"/>
+            <column name="age" value="30"/>
+            <column name="gender" value="male"/>
+        </insert>
+
+        <insert tableName="users2">
+            <column name="id" value="2"/>
+            <column name="name" value="Jane Smith"/>
+            <column name="age" value="25"/>
+            <column name="gender" value="female"/>
+        </insert>
+
+        <insert tableName="users2">
+            <column name="id" value="3"/>
+            <column name="name" value="Alice Johnson"/>
+            <column name="age" value="28"/>
+            <column name="gender" value="female"/>
+        </insert>
+
+        <insert tableName="users2">
+            <column name="id" value="4"/>
+            <column name="name" value="Bob Brown"/>
+            <column name="age" value="35"/>
+            <column name="gender" value="male"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
