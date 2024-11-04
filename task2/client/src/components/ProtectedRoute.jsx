@@ -13,6 +13,10 @@ const ProtectedRoute = ({ component: Component }) => {
           didInit.current = true;
           const auth = await keycloak.init({ onLoad: 'login-required' });
           setAuthenticated(auth);
+         // Выводим информацию о Keycloak и токены
+         console.log('Keycloak instance:', keycloak);
+         console.log('Access token:', keycloak.token);  // Access токен
+         console.log('Refresh token:', keycloak.refreshToken); 
         }
       } catch (error) {
         console.error('Failed to initialize Keycloak', error);

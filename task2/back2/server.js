@@ -69,10 +69,12 @@ const server = new ApolloServer({ typeDefs, resolvers });
 server.start().then(() => {
   server.applyMiddleware({ app });
 
-  const token = jwt.sign({ user: 'testUser' }, 'your_secret_key', { expiresIn: '1h' });
-  console.log('Generated Token:', token);
+
+console.log(keycloak
+);
 
   app.listen({ port: 3500 }, () =>
     console.log(`Task Service running at http://localhost:3500${server.graphqlPath}`)
+    
   );
 });

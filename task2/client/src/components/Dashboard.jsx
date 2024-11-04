@@ -12,6 +12,14 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('Keycloak instance:', keycloak);
+    if (keycloak.token) {
+      console.log('Access token:', keycloak.token);  // Access токен
+      console.log('Refresh token:', keycloak.refreshToken);  // Refresh токен
+    } else {
+      console.warn('Keycloak token is not available yet');
+    }
+    
     fetchTasks();
     fetchUsers();
   }, []);
@@ -132,6 +140,11 @@ const Dashboard = () => {
       setSelectedUserId(null);
     } catch (error) {
       console.error('Ошибка при добавлении задачи:', error);
+      
+    } finally {
+      console.log('Keycloak instance:', keycloak);
+      console.log('Access token:', keycloak.token);  // Access токен
+      console.log('Refresh token:', keycloak.refreshToken); 
     }
   };
 
