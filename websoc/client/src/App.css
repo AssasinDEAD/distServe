@@ -1,0 +1,129 @@
+/* src/App.css */
+
+body {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   height: 100vh;
+   margin: 0;
+   font-family: Arial, sans-serif;
+   background-color: #121212;
+   color: #ffffff;
+}
+
+.chat-container {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   height: 90vh;
+   width: 90%;
+   max-width: 1200px;
+   background-color: #1e1e1e;
+   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+   border-radius: 8px;
+   overflow: hidden;
+}
+
+.login-container {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   padding: 20px;
+   width: 100%;
+}
+
+.input {
+   padding: 10px;
+   margin: 10px 0;
+   width: 100%;
+   max-width: 600px;
+   border: 1px solid #333;
+   border-radius: 5px;
+   font-size: 16px;
+   background-color: #333;
+   color: #ffffff;
+}
+
+.button {
+   padding: 10px 20px;
+   font-size: 16px;
+   color: #ffffff;
+   background-color: #3a3a3a;
+   border: none;
+   border-radius: 5px;
+   cursor: pointer;
+   transition: background-color 0.3s;
+}
+
+.button:hover {
+   background-color: #555;
+}
+
+.chat-box {
+   display: flex;
+   flex-direction: column;
+   width: 900px;
+   height: 100%;
+}
+
+.messages {
+   flex-grow: 1;
+   padding: 20px;
+   overflow-y: auto;
+   display: flex;
+   flex-direction: column;
+}
+
+.message {
+   max-width: 70%;
+   padding: 10px;
+   margin: 5px 0;
+   border-radius: 10px;
+   display: flex;
+   flex-direction: column;
+   color: #ffffff;
+}
+
+.message.right {
+   align-self: flex-end;
+   background-color: #2e2e2e;
+   text-align: right;
+}
+
+.message.left {
+   align-self: flex-start;
+   background-color: #3e3e3e;
+   text-align: left;
+}
+
+.notification-content {
+   text-align: center;
+   color: #bbbbbb;
+   font-style: italic;
+   margin: 10px 0;
+}
+
+.username {
+   font-weight: bold;
+   margin-bottom: 3px;
+   color: #bbbbbb;
+}
+
+.content {
+   word-wrap: break-word;
+   color: #ffffff;
+}
+
+.input-container {
+   display: flex;
+   padding: 10px;
+   border-top: 1px solid #333;
+   background-color: #1e1e1e;
+}
+
+.input-container .input {
+   flex-grow: 1;
+   margin-right: 10px;
+   background-color: #333;
+   color: #ffffff;
+}
