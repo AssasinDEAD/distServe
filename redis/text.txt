@@ -1,0 +1,40 @@
+
+http://localhost:3000/auth/login
+
+{
+  "userId": "1"  
+}
+
+
+http://localhost:3000/books
+
+{
+  "title": "The Pragmatic Programmer",
+  "author": "Andrew Hunt and David Thomas",
+  "price": 45.00,
+  "genre": "Programming",
+  "description": "A comprehensive guide to software craftsmanship."
+}
+
+
+http://localhost:3000/books/{bookId}
+
+{
+  "title": "Updated Title",
+  "price": 50.00
+}
+
+http://localhost:3000/books/{bookId}
+
+http://localhost:3000/books/popular
+
+http://localhost:3000/auth/logout
+
+
+
+docker exec -it redis-redis-1 redis-cli
+KEYS *
+GET session:<sessionId>
+TTL session:<sessionId>
+ZREVRANGE popular_books 0 -1 WITHSCORES
+DEL session:<sessionId>
