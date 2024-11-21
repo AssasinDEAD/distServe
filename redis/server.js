@@ -11,10 +11,8 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-// Маршруты авторизации
 app.use('/auth', authController);
 
-// Маршрут для популярных книг
 app.get('/books/popular', authMiddleware, async (req, res) => {
     console.log('[SERVER] Fetching popular books...');
     try {
@@ -27,7 +25,6 @@ app.get('/books/popular', authMiddleware, async (req, res) => {
     }
 });
 
-// Маршрут для получения книги по ID с замером времени
 app.get('/books/:id', authMiddleware, async (req, res) => {
    const bookId = parseInt(req.params.id);
 
@@ -57,7 +54,6 @@ app.get('/books/:id', authMiddleware, async (req, res) => {
 });
 
 
-// Маршрут для добавления книги
 app.post('/books', authMiddleware, async (req, res) => {
     try {
         const newBook = await BookService.addBook(req.body);
@@ -68,7 +64,6 @@ app.post('/books', authMiddleware, async (req, res) => {
     }
 });
 
-// Маршрут для обновления книги
 app.put('/books/:id', authMiddleware, async (req, res) => {
     const bookId = parseInt(req.params.id);
 
@@ -89,7 +84,6 @@ app.put('/books/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Маршрут для удаления книги
 app.delete('/books/:id', authMiddleware, async (req, res) => {
     const bookId = parseInt(req.params.id);
 
@@ -110,7 +104,6 @@ app.delete('/books/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Запуск сервера
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`[SERVER] Running on port ${PORT}`);

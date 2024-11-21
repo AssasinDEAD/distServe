@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const redisClient = require('./redisClient');
 
-const SESSION_TTL = 1800; // 30 минут
+const SESSION_TTL = 1800;
 
 class SessionService {
     static async createSession(userId) {
